@@ -714,6 +714,7 @@ export class ChatService extends Disposable implements IChatService {
 					this.trace('sendRequest', `Provider returned progress: ${JSON.stringify(progress)}`);
 				}
 
+				console.log("stream accept finalllllllllllllllllllllllllllllllllllllll")
 				model.acceptResponseProgress(request, progress);
 				completeResponseCreated();
 			};

@@ -28,6 +28,7 @@ const ext = require('./lib/extensions');
 // 	ignore: ['**/out/**', '**/node_modules/**']
 // });
 const compilations = [
+	'extensions/chat-simple/tsconfig.json',
 	'extensions/configuration-editing/tsconfig.json',
 	'extensions/css-language-features/client/tsconfig.json',
 	'extensions/css-language-features/server/tsconfig.json',
@@ -115,7 +116,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 		const pipeline = function () {
 			const input = es.through();
-			const tsFilter = filter(['**/*.ts', '!**/lib/lib*.d.ts', '!**/node_modules/**'], { restore: true, dot: true });
+			const tsFilter = filter(['**/*.ts', '**/*.tsx', '!**/lib/lib*.d.ts', '!**/node_modules/**'], { restore: true, dot: true });
 			const output = input
 				.pipe(plumber({
 					errorHandler: function (err) {
@@ -152,7 +153,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	const transpileTask = task.define(`transpile-extension:${name}`, task.series(cleanTask, () => {
 		const pipeline = createPipeline(false, true, true);
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts']));
+		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts', '!**/*.tsx']));
 		const input = es.merge(nonts, pipeline.tsProjectSrc());
 
 		return input
@@ -162,7 +163,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	const compileTask = task.define(`compile-extension:${name}`, task.series(cleanTask, () => {
 		const pipeline = createPipeline(false, true);
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts']));
+		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts', '!**/*.tsx']));
 		const input = es.merge(nonts, pipeline.tsProjectSrc());
 
 		return input
@@ -172,7 +173,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	const watchTask = task.define(`watch-extension:${name}`, task.series(cleanTask, () => {
 		const pipeline = createPipeline(false);
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts']));
+		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts', '!**/*.tsx']));
 		const input = es.merge(nonts, pipeline.tsProjectSrc());
 		const watchInput = watcher(src, { ...srcOpts, ...{ readDelay: 200 } });
 
@@ -183,7 +184,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	const compileBuildTask = task.define(`compile-build-extension-${name}`, task.series(cleanTask, () => {
 		const pipeline = createPipeline(true, true);
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts']));
+		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts', '!**/*.tsx']));
 		const input = es.merge(nonts, pipeline.tsProjectSrc());
 
 		return input

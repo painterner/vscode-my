@@ -199,6 +199,8 @@ function packageTask(sourceFolderName, destinationFolderName) {
 			.pipe(util.skipDirectories())
 			.pipe(util.fixWin32DirectoryPermissions());
 
+		console.log("copy to dest", destination)
+
 		return result.pipe(vfs.dest(destination));
 	};
 }
@@ -231,3 +233,11 @@ const dashed = (/** @type {string} */ str) => (str ? `-${str}` : ``);
 	));
 	gulp.task(vscodeWebTask);
 });
+
+const sourceFolderName = `out-vscode-web`;
+const destinationFolderName = `vscode-web`;
+const vscodeWebTaskCopy = task.define(`vscode-web-copy`, task.series(
+	util.rimraf(path.join(BUILD_ROOT, destinationFolderName)),
+	packageTask(sourceFolderName, destinationFolderName)
+));
+gulp.task(vscodeWebTaskCopy);

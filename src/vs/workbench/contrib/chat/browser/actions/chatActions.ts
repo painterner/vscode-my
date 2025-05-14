@@ -135,6 +135,7 @@ export function registerChatActions() {
 			const hostService = accessor.get(IHostService);
 
 			const chatWidget = await showChatView(viewsService);
+			console.log("accept open chat", chatService, toolsService, viewsService, hostService, chatWidget)
 			if (!chatWidget) {
 				return;
 			}

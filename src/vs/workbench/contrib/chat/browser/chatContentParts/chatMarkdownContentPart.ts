@@ -99,6 +99,8 @@ export class ChatMarkdownContentPart extends Disposable implements IChatContentP
 		const result = this._register(renderer.render(markdown.content, {
 			fillInIncompleteTokens,
 			codeBlockRendererSync: (languageId, text, raw) => {
+				// console.log(`sssssssssssssssssssssssssssssssssssss0000`, isResponseVM(context.element), isRequestVM(context.element), context.element.isComplete, codeblockHasClosingBackticks(raw || ''))
+
 				const isCodeBlockComplete = !isResponseVM(context.element) || context.element.isComplete || !raw || codeblockHasClosingBackticks(raw);
 				if ((!text || (text.startsWith('<vscode_codeblock_uri') && !text.includes('\n'))) && !isCodeBlockComplete) {
 					const hideEmptyCodeblock = $('div');
@@ -137,6 +139,7 @@ export class ChatMarkdownContentPart extends Disposable implements IChatContentP
 				}
 				const codeBlockInfo: ICodeBlockData = { languageId, textModel, codeBlockIndex: globalIndex, codeBlockPartIndex: thisPartIndex, element, range, parentContextKeyService: contextKeyService, vulns, codemapperUri: codeblockEntry?.codemapperUri, renderOptions };
 
+				// console.log("sssssssssssssssssssssssssssssssssssss", element.isCompleteAddedRequest, !codeblockEntry?.codemapperUri, !codeblockEntry?.isEdit)
 				if (element.isCompleteAddedRequest || !codeblockEntry?.codemapperUri || !codeblockEntry.isEdit) {
 					const ref = this.renderCodeBlock(codeBlockInfo, text, isCodeBlockComplete, currentWidth);
 					this.allRefs.push(ref);
@@ -434,8 +437,10 @@ class CollapsedCodeBlock extends Disposable {
 			if (!diffBetweenStops) {
 				diffBetweenStops = modifiedEntry && editSession
 					? editSession.getEntryDiffBetweenStops(modifiedEntry.modifiedURI, this.requestId, this.inUndoStop)
-					: undefined;
+					: undefined; ``
 			}
+
+			console.log(`sggggggggggggggggggggggggggggggggggggggggggggggggg ${isStreaming} ${isComplete} ${diffBetweenStops?.read(r)?.added} ${modifiedEntry?.modifiedURI} ${this.inUndoStop}`)
 
 			if (!isStreaming && isComplete && diffBetweenStops) {
 				renderDiff(diffBetweenStops.read(r));

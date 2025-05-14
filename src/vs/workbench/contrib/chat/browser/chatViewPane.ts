@@ -143,6 +143,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 	private async updateModel(model?: IChatModel | undefined, viewState?: IChatViewState): Promise<void> {
 		this.modelDisposables.clear();
 
+		console.log("modelllllllllllllllllllllllllllllllllllllllll", model, this.chatOptions.location, this.chatService.transferredSessionData?.sessionId && this.chatService.transferredSessionData?.location === this.chatOptions.location)
 		model = model ?? (this.chatService.transferredSessionData?.sessionId && this.chatService.transferredSessionData?.location === this.chatOptions.location
 			? await this.chatService.getOrRestoreSession(this.chatService.transferredSessionData.sessionId)
 			: this.chatService.startSession(this.chatOptions.location, CancellationToken.None));

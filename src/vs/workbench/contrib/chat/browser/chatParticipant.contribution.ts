@@ -14,7 +14,8 @@ import * as strings from '../../../../base/common/strings.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
 import { localize, localize2 } from '../../../../nls.js';
-import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { ExtensionIdentifier, IExtensionManifest } from '../../../../platform/extensions/common/extensions.js';
@@ -136,6 +137,25 @@ const chatParticipantExtensionPoint = extensionsRegistry.ExtensionsRegistry.regi
 					description: localize('chatParticipantWhen', "A condition which must be true to enable this participant."),
 					type: 'string'
 				},
+				custom: {
+					description: localize('chatParticipantWhen', "A condition which must be true to enable this participant."),
+					type: 'string'
+				},
+				locations: {
+					description: localize('chatParticipantId', "locations"),
+					type: 'array',
+					items: {
+						type: 'string'
+					}
+				},
+				isAgent: {
+					description: localize('chatParticipantId', "is agent ?."),
+					type: 'boolean',
+				},
+				isDefault: {
+					description: localize('chatParticipantId', "is default ?."),
+					type: 'boolean',
+				},
 				disambiguation: {
 					description: localize('chatParticipantDisambiguation', "Metadata to help with automatically routing user questions to this chat participant."),
 					type: 'array',
@@ -226,6 +246,29 @@ const chatParticipantExtensionPoint = extensionsRegistry.ExtensionsRegistry.regi
 	},
 });
 
+// 注册命令
+export const CHAT_COMMANDS = {
+	ReceiveExtensionMessage: 'chat.jellyvaiMessageReq'
+};
+
+// 在某个 Command 类中注册
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: CHAT_COMMANDS.ReceiveExtensionMessage,
+			title: 'Receive Extension Message',
+			category: 'Chat',
+			f1: false, // 不在命令面板显示
+		});
+	}
+
+	async run(accessor: ServicesAccessor, message: string) {
+		// 可以在这里处理消息，或者仅用于触发事件
+		const logService = accessor.get(ILogService);
+		logService.info(`Custom jellyvaimessage Command received: ${message}`);
+	}
+});
+
 export class ChatExtensionPointHandler implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.chatExtensionPointHandler';
@@ -234,9 +277,50 @@ export class ChatExtensionPointHandler implements IWorkbenchContribution {
 
 	constructor(
 		@IChatAgentService private readonly _chatAgentService: IChatAgentService,
-		@ILogService private readonly logService: ILogService
+		@ILogService private readonly logService: ILogService,
+		@ICommandService private readonly commandService: ICommandService
 	) {
+		console.log("add codeask-res listener")
+		let chatSimpleInited = false;
+		window.addEventListener('message', (event) => {
+			console.log("receive message", event.data, chatSimpleInited)
+
+			try {
+				if (event.data.type === 'sync-jellyvai') {
+					event.source?.postMessage(
+						{
+							type: 'sync-jellyvai-res',
+							result: chatSimpleInited
+						},
+						// @ts-ignore
+						event.origin
+					);
+					if (chatSimpleInited) {
+						const data = event.data
+						this.commandService.executeCommand('jellyvai-message', { data: data.detail })
+					}
+				}
+			} catch (e) {
+				console.log(e)
+			}
+
+			// window.dispatchEvent(new CustomEvent('codeask-res', data))
+		})
+		window.addEventListener('codeask-res', (d: any) => {
+			console.log("codeask-res", d)
+			this.commandService.executeCommand('jellyvai-message', { data: d.detail })
+		})
+
+		this.commandService.onDidExecuteCommand((e) => {
+			console.log("debug command id", e.commandId)
+			if (e.commandId === CHAT_COMMANDS.ReceiveExtensionMessage) {
+				chatSimpleInited = true
+			}
+		})
+
 		this.handleAndRegisterChatExtensions();
+
+		// window.dispatchEvent(new CustomEvent('codeask-res', { detail: { data: ''}}))
 	}
 
 	private handleAndRegisterChatExtensions(): void {

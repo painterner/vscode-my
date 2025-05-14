@@ -5,7 +5,7 @@
 
 // @ts-check
 
-const testWebLocation = require.resolve('@vscode/test-web');
+const testWebLocation = require.resolve('./test-web');
 
 const fs = require('fs');
 const path = require('path');
@@ -17,8 +17,8 @@ const ansiColors = require('ansi-colors');
 const open = require('open');
 const https = require('https');
 
-// const APP_ROOT = path.join(__dirname, '..', '..', 'vscode-web');
-const APP_ROOT = path.join(__dirname, '..');
+const APP_ROOT = path.join(__dirname, '..', '..', 'vscode-web');
+// const APP_ROOT = path.join(__dirname, '..');
 const WEB_DEV_EXTENSIONS_ROOT = path.join(APP_ROOT, '.build', 'builtInWebDevExtensions');
 
 const WEB_PLAYGROUND_VERSION = '0.0.13';
@@ -83,7 +83,7 @@ async function main() {
 
 	startServer(serverArgs);
 	if (openSystemBrowser) {
-		open(`http://${HOST}:${PORT}`);
+		open(`http://${HOST}:${PORT}/vscode-web`);
 	}
 }
 
